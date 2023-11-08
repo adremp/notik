@@ -1,0 +1,34 @@
+{
+  "version": "2",
+  "sql": [{
+    "schema": "internal/users/users_repo/schema.sql",
+    "queries": "internal/users/users_repo/query.sql",
+    "engine": "postgresql",
+    "gen": {
+      "go": {
+        "out": "internal/users/users_repo",
+				"sql_package": "pgx/v5"
+      }
+    }
+  }, {
+    "schema": "internal/pages/pages_repo/schema.sql",
+    "queries": "internal/pages/pages_repo/query.sql",
+    "engine": "postgresql",
+    "gen": {
+      "go": {
+        "out": "internal/pages/pages_repo",
+				"sql_package": "pgx/v5"
+      }
+    }
+  }, {
+    "schema": "internal/parts/parts_repo/schema.sql",
+    "queries": "internal/parts/parts_repo/query.sql",
+    "engine": "postgresql",
+    "gen": {
+      "go": {
+        "out": "internal/parts/parts_repo",
+				"sql_package": "pgx/v5"
+      }
+    }
+  }]
+}

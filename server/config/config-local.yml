@@ -1,0 +1,9 @@
+server:
+  Port: :5555
+  Host: localhost
+  Mode: development
+
+loger:
+  Development: true
+  Level: info
+  encoding: console
