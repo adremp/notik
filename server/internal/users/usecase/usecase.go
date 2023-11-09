@@ -34,7 +34,7 @@ func (s *usersUc) Create(ctx context.Context, input users.CreateInput) (*users.U
 		return nil, fmt.Errorf("users.uc.create: %w", err)
 	}
 
-	token, err := utils.GenerateToken(newUser.ID, time.Minute*1)
+	token, err := utils.GenerateToken(newUser.ID, newUser.Email, time.Minute*1)
 	if err != nil {
 		return nil, fmt.Errorf("users.uc.create.generateToken: %w", err)
 	}

@@ -5,14 +5,21 @@ import (
 	"notik/pkg/httpErrors"
 	"os"
 	"time"
-
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateToken(id int32, expires time.Duration) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":  id,
-		"exp": time.Now().Add(expires).Unix(),
+type UserClaims struct {
+	jwt.MapClaims
+	Id int32
+	Email string
+}
+
+func GenerateToken(id int32, email string, expires time.Duration) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, UserClaims{
+		Id: id,
+		MapClaims: jwt.MapClaims{
+			"exp": time.Now().Add(expires).Unix(),
+		},
 	})
 
 	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))

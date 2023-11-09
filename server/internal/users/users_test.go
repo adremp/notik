@@ -1,96 +1,108 @@
 package users_test
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
-	"fmt"
 	"net/http/httptest"
-	migrations "notik"
 	"notik/internal/users"
 	"notik/internal/users/http"
 	"notik/internal/users/usecase"
 	"notik/internal/users/users_repo"
-	"notik/pkg/postgres"
+	"notik/pkg/httpErrors"
+	"notik/pkg/tests"
+	"notik/pkg/utils"
 	"testing"
 
-	"github.com/labstack/echo/v4"
-	"github.com/pressly/goose/v3"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-func MigrateDb(t *testing.T, dbURI string) error {
-	psql, err := goose.OpenDBWithDriver("postgres", dbURI)
-	require.NoError(t, err)
-	goose.SetBaseFS(migrations.Migrations)
-
-	require.NoError(t, goose.SetDialect("postgres"))
-	require.NoError(t, goose.Up(psql, "migrations"))
-
-	return nil
-}
-
 func TestContainer(t *testing.T) {
+	t.Parallel()
 
-	ctx := context.Background()
-
-	pgEnv := map[string]string{
-		"POSTGRES_PASSWORD": "postgres",
-		"POSTGRES_USER":     "postgres",
-		"POSTGRES_DB":       "pgtest",
+	type Case struct {
+		Name    string
+		Body    interface{}
+		CheckFn func(res *httptest.ResponseRecorder)
 	}
 
-	creq := testcontainers.GenericContainerRequest{
-		ContainerRequest: testcontainers.ContainerRequest{
-			Image:        "postgres:latest",
-			ExposedPorts: []string{"5432/tcp"},
-			Env:          pgEnv,
-			WaitingFor:   wait.ForListeningPort("5432/tcp"),
+	cases := []Case{
+		{
+			Name: "Success",
+			Body: users.CreateInput{
+				Username: "Andre1",
+				Email:    "arer@rt.rt",
+				Password: "12345678",
+			}, CheckFn: func(res *httptest.ResponseRecorder) {
+				tokenCookie := tests.GetRespCookie(t, res, "token")
+				tokenEl, err := utils.ParseToken(tokenCookie.Value)
+				require.NoError(t, err)
+				tokenData, _ := tokenEl.Claims.(utils.UserClaims)
+				require.Equal(t, tokenData.Email, "arer@rt.rt")
+				require.Equal(t, res.Result().StatusCode, 201)
+			},
 		},
-		Started: true,
+		{
+			Name: "Email exist",
+			Body: users.CreateInput{
+				Username: "Andre1",
+				Email:    "arer@rt.rt",
+				Password: "12345678",
+			}, CheckFn: func(res *httptest.ResponseRecorder) {
+				tests.EqBodyMessageError(t, res, httpErrors.ErrEmailExist)
+				require.Equal(t, res.Result().StatusCode, 400)
+			},
+		},
+		{
+			Name: "Invalid email",
+			Body: users.CreateInput{
+				Username: "Andrew2",
+				Email:    "adrer",
+				Password: "123143",
+			},
+			CheckFn: func(res *httptest.ResponseRecorder) {
+				require.Equal(t, res.Result().StatusCode, 400)
+			},
+		},
+		{
+			Name: "Empty email",
+			Body: users.CreateInput{
+				Username: "Andrew2",
+				Email:    "",
+				Password: "123143",
+			},
+			CheckFn: func(res *httptest.ResponseRecorder) {
+				require.Equal(t, res.Result().StatusCode, 400)
+			},
+		},
+		{
+			Name: "Empty password",
+			Body: users.CreateInput{
+				Username: "Andrew2",
+				Email:    "qwe@qwe.fr",
+				Password: "",
+			},
+			CheckFn: func(res *httptest.ResponseRecorder) {
+				require.Equal(t, res.Result().StatusCode, 400)
+			},
+		},
 	}
 
-	pgCont, err := testcontainers.GenericContainer(ctx, creq)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	pgPort, _ := pgCont.MappedPort(ctx, "5432")
-	pgHost, _ := pgCont.Host(ctx)
-
-	defer pgCont.Terminate(ctx)
-
-	testDataSource := fmt.Sprintf("postgres://postgres:postgres@%s:%s/pgtest?sslmode=disable", pgHost, pgPort.Port())
-	pgConn, err := postgres.NewPgConn(ctx, testDataSource)
-	if err != nil {
-		t.Fatal(err)
-	}
+	pgConn, Close, testSource := tests.SetupTestPostgres(t)
+	defer Close()
+	tests.MigrateDb(t, testSource)
 
 	usersR := users_repo.New(pgConn)
 	usersUc := usecase.New(usersR)
 	usersH := http.New(usersUc)
-
 	handler := usersH.Create()
 
-	input := users.CreateInput{
-		Username: "Andre",
-		Email:    "arer@rt.rt",
-		Password: "12345678",
+	for _, caseEl := range cases {
+		t.Run(caseEl.Name, func(t *testing.T) {
+			res, _, ectx := tests.SetupRequest(t, tests.SetupConfig{
+				Path:   "/",
+				Method: "POST",
+				Body:   caseEl.Body,
+			})
+			handler(*ectx)
+			caseEl.CheckFn(res)
+		})
 	}
-
-	inputBytes, err := json.Marshal(input)
-	require.NoError(t, err)
-
-	req := httptest.NewRequest("POST", "/", bytes.NewReader(inputBytes))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	res := httptest.NewRecorder()
-
-	ectx := echo.New().NewContext(req, res)
-
-	MigrateDb(t, testDataSource)
-
-	err = handler(ectx)
-	require.Equal(t, res.Result().StatusCode, 201)
 }
