@@ -39,7 +39,7 @@ func NewServer() error {
 
 	ctx := context.Background()
 
-	psqlDB, err := postgres.NewPgConn(ctx, postgres.DefaultDataSourceName)
+	psqlDB, err := postgres.NewPgConn(ctx, postgres.GetDefaultDataSource())
 	if err != nil {
 		return fmt.Errorf("failed to connect to postgres: %w", err)
 	}

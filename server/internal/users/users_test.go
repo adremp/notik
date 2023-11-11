@@ -34,8 +34,7 @@ func TestContainer(t *testing.T) {
 				tokenCookie := tests.GetRespCookie(t, res, "token")
 				tokenEl, err := utils.ParseToken(tokenCookie.Value)
 				require.NoError(t, err)
-				tokenData, _ := tokenEl.Claims.(utils.UserClaims)
-				require.Equal(t, tokenData.Email, "arer@rt.rt")
+				require.Equal(t, tokenEl.Email, "arer@rt.rt")
 				require.Equal(t, res.Result().StatusCode, 201)
 			},
 		},

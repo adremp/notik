@@ -18,6 +18,7 @@ var (
 	ErrUnexpected = errors.New("Unexpected error")
 	ErrTimeout    = errors.New("Timeout exceeded")
 	ErrEmailExist = errors.New("User already exists")
+	ErrUnauthorized = errors.New("Unauthorized")
 )
 
 type Error struct {

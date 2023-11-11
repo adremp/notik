@@ -47,19 +47,48 @@ func (q *Queries) Delete(ctx context.Context, id int32) error {
 	return err
 }
 
-const getByEmail = `-- name: GetByEmail :one
-select username, email, password from users where email = $1
+const getByFields = `-- name: GetByFields :many
+select id, username, email, password, created_at from users 
+where (id = COALESCE(NULLIF($1::int, 0), id)) AND 
+(username = COALESCE(NULLIF($2::text, ''), username)) AND 
+(email = COALESCE(NULLIF($3::text, ''), email)) 
+limit COALESCE(NULLIF($4::int, 0), 1)
 `
 
-type GetByEmailRow struct {
+type GetByFieldsParams struct {
+	ID       int32
 	Username string
 	Email    string
-	Password string
+	Limits   int32
 }
 
-func (q *Queries) GetByEmail(ctx context.Context, email string) (GetByEmailRow, error) {
-	row := q.db.QueryRow(ctx, getByEmail, email)
-	var i GetByEmailRow
-	err := row.Scan(&i.Username, &i.Email, &i.Password)
-	return i, err
+func (q *Queries) GetByFields(ctx context.Context, arg GetByFieldsParams) ([]User, error) {
+	rows, err := q.db.Query(ctx, getByFields,
+		arg.ID,
+		arg.Username,
+		arg.Email,
+		arg.Limits,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Email,
+			&i.Password,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

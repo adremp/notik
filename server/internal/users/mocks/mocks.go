@@ -52,19 +52,34 @@ func (mr *MockRepoMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRepo)(nil).Create), arg0, arg1)
 }
 
-// GetByEmail mocks base method.
-func (m *MockRepo) GetByEmail(arg0 context.Context, arg1 string) (users_repo.GetByEmailRow, error) {
+// GetByFields mocks base method.
+func (m *MockRepo) GetByFields(arg0 context.Context, arg1 users_repo.GetByFieldsParams) ([]users_repo.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByEmail", arg0, arg1)
-	ret0, _ := ret[0].(users_repo.GetByEmailRow)
+	ret := m.ctrl.Call(m, "GetByFields", arg0, arg1)
+	ret0, _ := ret[0].([]users_repo.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetByEmail indicates an expected call of GetByEmail.
-func (mr *MockRepoMockRecorder) GetByEmail(arg0, arg1 interface{}) *gomock.Call {
+// GetByFields indicates an expected call of GetByFields.
+func (mr *MockRepoMockRecorder) GetByFields(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByEmail", reflect.TypeOf((*MockRepo)(nil).GetByEmail), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByFields", reflect.TypeOf((*MockRepo)(nil).GetByFields), arg0, arg1)
+}
+
+// GetOneByFields mocks base method.
+func (m *MockRepo) GetOneByFields(arg0 context.Context, arg1 users_repo.GetByFieldsParams) (users_repo.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOneByFields", arg0, arg1)
+	ret0, _ := ret[0].(users_repo.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOneByFields indicates an expected call of GetOneByFields.
+func (mr *MockRepoMockRecorder) GetOneByFields(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOneByFields", reflect.TypeOf((*MockRepo)(nil).GetOneByFields), arg0, arg1)
 }
 
 // MockHandler is a mock of Handler interface.
@@ -140,4 +155,19 @@ func (m *MockUsecase) Create(arg0 context.Context, arg1 users.CreateInput) (*use
 func (mr *MockUsecaseMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUsecase)(nil).Create), arg0, arg1)
+}
+
+// GetOneByFields mocks base method.
+func (m *MockUsecase) GetOneByFields(arg0 context.Context, arg1 users_repo.GetByFieldsParams) (users_repo.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOneByFields", arg0, arg1)
+	ret0, _ := ret[0].(users_repo.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOneByFields indicates an expected call of GetOneByFields.
+func (mr *MockUsecaseMockRecorder) GetOneByFields(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOneByFields", reflect.TypeOf((*MockUsecase)(nil).GetOneByFields), arg0, arg1)
 }

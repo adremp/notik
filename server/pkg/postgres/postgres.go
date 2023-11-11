@@ -18,10 +18,9 @@ type DataSource struct {
 	SSLMode  string
 }
 
-
-var (
-	DefaultDataSourceName = fmt.Sprintf("postgres://postgres:%v@%v:%v/%v?sslmode=%v", os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_HOST"), os.Getenv("POSTGRES_PORT"), os.Getenv("POSTGRES_DB"), os.Getenv("POSTGRES_SSLMODE"))
-)
+func GetDefaultDataSource() string {
+	return fmt.Sprintf("postgres://postgres:%v@%v:%v/%v?sslmode=%v", os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_HOST"), os.Getenv("POSTGRES_PORT"), os.Getenv("POSTGRES_DB"), os.Getenv("POSTGRES_SSLMODE"))
+}
 
 func NewPgConn(ctx context.Context, source string) (*pgx.Conn, error) {
 

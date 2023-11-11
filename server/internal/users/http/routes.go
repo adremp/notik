@@ -2,7 +2,6 @@ package http
 
 import (
 	"notik/internal/users"
-
 	"github.com/labstack/echo/v4"
 )
 

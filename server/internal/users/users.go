@@ -14,11 +14,12 @@ type Handler interface {
 
 type Repo interface {
 	Create(context.Context, users_repo.CreateParams) (users_repo.CreateRow, error)
-	GetByEmail(context.Context, string) (users_repo.GetByEmailRow, error)
+	GetByFields(context.Context, users_repo.GetByFieldsParams) ([]users_repo.User, error)
 }
 
 type Usecase interface {
-	Create(ctx context.Context, userInput CreateInput) (*UserWithToken, error)
+	Create(context.Context, CreateInput) (*UserWithToken, error)
+	GetByFields(context.Context, users_repo.GetByFieldsParams) ([]users_repo.User, error)
 }
 
 type CreateInput struct {
@@ -42,5 +43,5 @@ func (s *CreateInput) ComparePassword(pass string) error {
 
 type UserWithToken struct {
 	User  users_repo.CreateRow `json:"user"`
-	Token string          `json:"token"`
+	Token string               `json:"token"`
 }
