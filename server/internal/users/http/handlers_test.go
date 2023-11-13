@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http/httptest"
+	"notik/config"
 	"notik/internal/users"
 	"notik/internal/users/http"
 	mock_users "notik/internal/users/mocks"
 	"notik/internal/users/usecase"
 	"notik/internal/users/users_repo"
+	"notik/pkg/logger"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -23,6 +25,8 @@ func TestCreate(t *testing.T) {
 		Password: "12345678",
 	}
 
+	appLogger := logger.NewApiLogger(&config.Config{})
+
 	inputBytes, err := json.Marshal(input)
 	if err != nil {
 		t.Fatal(err)
@@ -30,8 +34,8 @@ func TestCreate(t *testing.T) {
 
 	ctl := gomock.NewController(t)
 	userRepo := mock_users.NewMockRepo(ctl)
-	userUc := usecase.New(userRepo)
-	userH := http.New(userUc)
+	userUc := usecase.New(userRepo, appLogger)
+	userH := http.New(userUc, appLogger)
 	handler := userH.Create()
 
 	req := httptest.NewRequest("POST", "/users", bytes.NewBuffer(inputBytes))

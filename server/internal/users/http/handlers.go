@@ -1,21 +1,21 @@
 package http
 
 import (
-	"log"
 	"net/http"
 	"notik/internal/users"
-	"notik/pkg/httpErrors"
+	"notik/pkg/logger"
 	"notik/pkg/utils"
 
 	"github.com/labstack/echo/v4"
 )
 
 type usersHandler struct {
-	uc users.Usecase
+	uc  users.Usecase
+	log logger.Logger
 }
 
-func New(uc users.Usecase) users.Handler {
-	return &usersHandler{uc}
+func New(uc users.Usecase, log logger.Logger) users.Handler {
+	return &usersHandler{uc, log}
 }
 
 func (s *usersHandler) Create() echo.HandlerFunc {
@@ -23,14 +23,12 @@ func (s *usersHandler) Create() echo.HandlerFunc {
 		var input users.CreateInput
 
 		if err := utils.SanitizeRequest(c, &input); err != nil {
-			log.Print(err)
-			return c.JSON(httpErrors.RequestError(err))
+			return utils.ErrResponseWithLog(c, s.log, err)
 		}
 
 		createdUser, err := s.uc.Create(c.Request().Context(), input)
 		if err != nil {
-			log.Print(err)
-			return c.JSON(httpErrors.RequestError(err))
+			return utils.ErrResponseWithLog(c, s.log, err)
 		}
 
 		c.SetCookie(utils.CreateCookie(createdUser.Token, 600))

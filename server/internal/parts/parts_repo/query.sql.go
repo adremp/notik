@@ -9,36 +9,79 @@ import (
 	"context"
 )
 
-const create = `-- name: Create :one
-with part_el as (
-	select
-		coalesce(max(part_order), 0) + 1 as part_order
-	from
-		parts
-	where
-		page_id = $3
-)
-insert into
-	parts (part_order, variant, title, page_id)
-values
-	(part_el.part_order, $1, $2, $3) RETURNING id, part_order, variant, title, page_id
+const getByFields = `-- name: GetByFields :many
+select id, part_order, variant, body, page_id from parts 
+where (id = COALESCE(NULLIF($1::int, 0), id)) AND 
+(username = COALESCE(NULLIF($2::text, ''), username)) AND 
+(email = COALESCE(NULLIF($3::text, ''), email)) 
+limit COALESCE(NULLIF($4::int, 0), 1)
 `
 
-type CreateParams struct {
+type GetByFieldsParams struct {
+	ID       int32
+	Username string
+	Email    string
+	Limits   int32
+}
+
+func (q *Queries) GetByFields(ctx context.Context, arg GetByFieldsParams) ([]Part, error) {
+	rows, err := q.db.Query(ctx, getByFields,
+		arg.ID,
+		arg.Username,
+		arg.Email,
+		arg.Limits,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Part
+	for rows.Next() {
+		var i Part
+		if err := rows.Scan(
+			&i.ID,
+			&i.PartOrder,
+			&i.Variant,
+			&i.Body,
+			&i.PageID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const upsert = `-- name: Upsert :one
+insert into parts (variant, body, page_id) values ($1, $2, $3) 
+on conflict (id) do 
+update set variant = $1, body = $2, page_id = $3 returning variant, body, page_id, id
+`
+
+type UpsertParams struct {
 	Variant PartType
-	Title   string
+	Body    string
 	PageID  int64
 }
 
-func (q *Queries) Create(ctx context.Context, arg CreateParams) (Part, error) {
-	row := q.db.QueryRow(ctx, create, arg.Variant, arg.Title, arg.PageID)
-	var i Part
+type UpsertRow struct {
+	Variant PartType
+	Body    string
+	PageID  int64
+	ID      int32
+}
+
+func (q *Queries) Upsert(ctx context.Context, arg UpsertParams) (UpsertRow, error) {
+	row := q.db.QueryRow(ctx, upsert, arg.Variant, arg.Body, arg.PageID)
+	var i UpsertRow
 	err := row.Scan(
-		&i.ID,
-		&i.PartOrder,
 		&i.Variant,
-		&i.Title,
+		&i.Body,
 		&i.PageID,
+		&i.ID,
 	)
 	return i, err
 }

@@ -23,9 +23,9 @@ type Usecase interface {
 }
 
 type CreateInput struct {
-	Email    string `validate:"required,email"`
-	Username string `validate:"required,min=3,max=20"`
-	Password string `validate:"required,min=8,max=20"`
+	Email    string `json:"email" validate:"required,email"`
+	Username string `json:"username" validate:"required,min=3,max=20"`
+	Password string `json:"password" validate:"required,min=8,max=20"`
 }
 
 func (s *CreateInput) HashPassword() error {

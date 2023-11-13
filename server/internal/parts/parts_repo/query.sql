@@ -1,13 +1,13 @@
--- name: Create :one
-with part_el as (
-	select
-		coalesce(max(part_order), 0) + 1 as part_order
-	from
-		parts
-	where
-		page_id = $3
-)
-insert into
-	parts (part_order, variant, title, page_id)
-values
-	(part_el.part_order, $1, $2, $3) RETURNING *;
+-- name: Upsert :one
+insert into parts (variant, body, page_id) values ($1, $2, $3) 
+on conflict (id) do 
+update set variant = $1, body = $2, page_id = $3 returning variant, body, page_id, id;
+
+
+
+-- name: GetByFields :many
+select * from parts 
+where (id = COALESCE(NULLIF(@id::int, 0), id)) AND 
+(username = COALESCE(NULLIF(@username::text, ''), username)) AND 
+(email = COALESCE(NULLIF(@email::text, ''), email)) 
+limit COALESCE(NULLIF(@limits::int, 0), 1);

@@ -58,6 +58,6 @@ type Part struct {
 	ID        int32
 	PartOrder int16
 	Variant   PartType
-	Title     string
+	Body      string
 	PageID    int64
 }

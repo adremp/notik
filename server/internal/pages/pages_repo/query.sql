@@ -16,4 +16,14 @@ insert into pages (
 ) values (
 	$1,
 	$2
-) returning *;
+) returning id, title;
+
+
+
+-- name: GetByFields :many
+select id, title, user_id from pages 
+where (id = COALESCE(NULLIF(@id::int, 0), id)) AND 
+(title = COALESCE(NULLIF(@title::text, ''), title)) AND 
+(user_id = COALESCE(NULLIF(@user_id::text, ''), user_id)) 
+limit COALESCE(NULLIF(@limits::int, 0), 1) 
+offset @offsets::int;

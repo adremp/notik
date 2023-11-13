@@ -14,4 +14,5 @@ CREATE TABLE parts (
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE parts;
+DROP TYPE part_variant;
 -- +goose StatementEnd

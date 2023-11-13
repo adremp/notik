@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"notik/internal/pages"
 	"notik/internal/pages/pages_repo"
+	"notik/internal/users/users_repo"
 	"notik/pkg/httpErrors"
 	"notik/pkg/utils"
 
@@ -25,7 +26,12 @@ func (s *pagesHandler) Create() echo.HandlerFunc {
 			return c.JSON(httpErrors.RequestError(err))
 		}
 
-		page, err := s.uc.Create(c.Request().Context(), pages_repo.CreateParams{Title: input.Title, UserID: 1})
+		user, ok := c.Get("user").(users_repo.User)
+		if !ok {
+			return c.JSON(httpErrors.RequestError(httpErrors.ErrUnauthorized))
+		}
+
+		page, err := s.uc.Create(c.Request().Context(), pages_repo.CreateParams{Title: input.Title, UserID: int64(user.ID)})
 		if err != nil {
 			return c.JSON(httpErrors.RequestError(err))
 		}

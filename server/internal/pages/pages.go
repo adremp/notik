@@ -12,13 +12,14 @@ type Handler interface {
 }
 
 type Usecase interface {
-	Create(context.Context, pages_repo.CreateParams) (pages_repo.Page, error)
+	Create(context.Context, pages_repo.CreateParams) (pages_repo.CreateRow, error)
+	GetByFields(context.Context, pages_repo.GetByFieldsParams) ([]pages_repo.GetByFieldsRow, error)
 }
 
 type Repo interface {
-	Create(context.Context, pages_repo.CreateParams) (pages_repo.Page, error)
+	Create(context.Context, pages_repo.CreateParams) (pages_repo.CreateRow, error)
+	GetByFields(context.Context, pages_repo.GetByFieldsParams) ([]pages_repo.GetByFieldsRow, error)
 }
-
 
 type CreateInput struct {
 	Title string `validate:"required,min=3,max=80"`

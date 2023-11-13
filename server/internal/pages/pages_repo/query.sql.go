@@ -16,7 +16,7 @@ insert into pages (
 ) values (
 	$1,
 	$2
-) returning id, title, user_id
+) returning id, title
 `
 
 type CreateParams struct {
@@ -24,16 +24,70 @@ type CreateParams struct {
 	UserID int64
 }
 
-func (q *Queries) Create(ctx context.Context, arg CreateParams) (Page, error) {
+type CreateRow struct {
+	ID    int32
+	Title string
+}
+
+func (q *Queries) Create(ctx context.Context, arg CreateParams) (CreateRow, error) {
 	row := q.db.QueryRow(ctx, create, arg.Title, arg.UserID)
-	var i Page
-	err := row.Scan(&i.ID, &i.Title, &i.UserID)
+	var i CreateRow
+	err := row.Scan(&i.ID, &i.Title)
 	return i, err
+}
+
+const getByFields = `-- name: GetByFields :many
+select id, title, user_id from pages 
+where (id = COALESCE(NULLIF($1::int, 0), id)) AND 
+(title = COALESCE(NULLIF($2::text, ''), title)) AND 
+(user_id = COALESCE(NULLIF($3::text, ''), user_id)) 
+limit COALESCE(NULLIF($5::int, 0), 1) 
+offset $4::int
+`
+
+type GetByFieldsParams struct {
+	ID      int32
+	Title   string
+	UserID  string
+	Offsets int32
+	Limits  int32
+}
+
+type GetByFieldsRow struct {
+	ID     int32
+	Title  string
+	UserID int64
+}
+
+func (q *Queries) GetByFields(ctx context.Context, arg GetByFieldsParams) ([]GetByFieldsRow, error) {
+	rows, err := q.db.Query(ctx, getByFields,
+		arg.ID,
+		arg.Title,
+		arg.UserID,
+		arg.Offsets,
+		arg.Limits,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetByFieldsRow
+	for rows.Next() {
+		var i GetByFieldsRow
+		if err := rows.Scan(&i.ID, &i.Title, &i.UserID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getById = `-- name: GetById :one
 select
-	id, title, user_id
+	id, title, user_id, created_at, updated_at
 from
 	pages p
 where
@@ -43,6 +97,12 @@ where
 func (q *Queries) GetById(ctx context.Context, id int32) (Page, error) {
 	row := q.db.QueryRow(ctx, getById, id)
 	var i Page
-	err := row.Scan(&i.ID, &i.Title, &i.UserID)
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.UserID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }

@@ -4,7 +4,7 @@ migrate:
 ifndef C
 	$(error C is undefined)
 endif
-	goose -dir ./migrations postgres "user=postgres password=$(POSTGRES_PASSWORD) dbname=postgres sslmode=disable" ${C} ${T}
+	goose -dir ./migrations postgres "user=$(POSTGRES_USER) password=$(POSTGRES_PASSWORD) dbname=$(POSTGRES_DB) sslmode=disable" ${C} ${T}
 
 
 migrate_new:

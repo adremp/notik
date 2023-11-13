@@ -67,21 +67,6 @@ func (mr *MockRepoMockRecorder) GetByFields(arg0, arg1 interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByFields", reflect.TypeOf((*MockRepo)(nil).GetByFields), arg0, arg1)
 }
 
-// GetOneByFields mocks base method.
-func (m *MockRepo) GetOneByFields(arg0 context.Context, arg1 users_repo.GetByFieldsParams) (users_repo.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOneByFields", arg0, arg1)
-	ret0, _ := ret[0].(users_repo.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetOneByFields indicates an expected call of GetOneByFields.
-func (mr *MockRepoMockRecorder) GetOneByFields(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOneByFields", reflect.TypeOf((*MockRepo)(nil).GetOneByFields), arg0, arg1)
-}
-
 // MockHandler is a mock of Handler interface.
 type MockHandler struct {
 	ctrl     *gomock.Controller
@@ -157,17 +142,17 @@ func (mr *MockUsecaseMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUsecase)(nil).Create), arg0, arg1)
 }
 
-// GetOneByFields mocks base method.
-func (m *MockUsecase) GetOneByFields(arg0 context.Context, arg1 users_repo.GetByFieldsParams) (users_repo.User, error) {
+// GetByFields mocks base method.
+func (m *MockUsecase) GetByFields(arg0 context.Context, arg1 users_repo.GetByFieldsParams) ([]users_repo.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOneByFields", arg0, arg1)
-	ret0, _ := ret[0].(users_repo.User)
+	ret := m.ctrl.Call(m, "GetByFields", arg0, arg1)
+	ret0, _ := ret[0].([]users_repo.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetOneByFields indicates an expected call of GetOneByFields.
-func (mr *MockUsecaseMockRecorder) GetOneByFields(arg0, arg1 interface{}) *gomock.Call {
+// GetByFields indicates an expected call of GetByFields.
+func (mr *MockUsecaseMockRecorder) GetByFields(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOneByFields", reflect.TypeOf((*MockUsecase)(nil).GetOneByFields), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByFields", reflect.TypeOf((*MockUsecase)(nil).GetByFields), arg0, arg1)
 }

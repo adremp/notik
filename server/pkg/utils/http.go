@@ -2,6 +2,9 @@ package utils
 
 import (
 	"net/http"
+	"notik/internal/users/users_repo"
+	"notik/pkg/httpErrors"
+	"notik/pkg/logger"
 
 	"github.com/labstack/echo/v4"
 	"github.com/microcosm-cc/bluemonday"
@@ -13,15 +16,14 @@ func init() {
 	sanitizer = bluemonday.UGCPolicy()
 }
 
-
-func CreateCookie(token string, age int)	*http.Cookie {
+func CreateCookie(token string, age int) *http.Cookie {
 	return &http.Cookie{
-		Name: "token",
-		Value: token,
-		Path: "/",
-		MaxAge: age,
+		Name:     "token",
+		Value:    token,
+		Path:     "/",
+		MaxAge:   age,
 		HttpOnly: true,
-		Secure: true,
+		Secure:   true,
 	}
 }
 
@@ -70,3 +72,16 @@ func sanitize(data interface{}) {
 	}
 }
 
+func ErrResponseWithLog(c echo.Context, log logger.Logger, err error) error {
+	status, e := httpErrors.RequestError(err)
+	log.Errorf("Error: %s; IP: %s; Causes: %+v", err, c.Request().RemoteAddr, e.ErrCauses)
+	return c.JSON(status, e)
+}
+
+func GetUserFromCtx(c echo.Context) (*users_repo.User, error) {
+	user, ok := c.Get("user").(users_repo.User)
+	if !ok {
+		return &user, httpErrors.ErrUnauthorized
+	}
+	return &user, nil
+}

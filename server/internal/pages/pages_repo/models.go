@@ -4,10 +4,14 @@
 
 package pages_repo
 
-import ()
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+)
 
 type Page struct {
-	ID     int32
-	Title  string
-	UserID int64
+	ID        int32
+	Title     string
+	UserID    int64
+	CreatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp
 }

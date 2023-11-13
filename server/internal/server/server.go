@@ -10,6 +10,9 @@ import (
 	pagesHttp "notik/internal/pages/http"
 	"notik/internal/pages/pages_repo"
 	pagesUsecase "notik/internal/pages/usecase"
+	partsHttp "notik/internal/parts/http"
+	"notik/internal/parts/parts_repo"
+	partsUsecase "notik/internal/parts/usecase"
 	usersHandlers "notik/internal/users/http"
 	usersHttp "notik/internal/users/http"
 	usersUsecase "notik/internal/users/usecase"
@@ -46,18 +49,23 @@ func NewServer() error {
 	defer psqlDB.Close(ctx)
 
 	userRepo := users_repo.New(psqlDB)
-	userUc := usersUsecase.New(userRepo)
-	userH := usersHandlers.New(userUc)
-
-	userGroup := e.Group("/users")
-	usersHttp.NewRoutes(userGroup, userH)
-
+	userUc := usersUsecase.New(userRepo, appLogger)
+	userH := usersHandlers.New(userUc, appLogger)
 	pageRepo := pages_repo.New(psqlDB)
 	pageUc := pagesUsecase.New(pageRepo)
 	pagesH := pagesHandler.New(pageUc)
+	partRepo := parts_repo.New(psqlDB)
+	partUc := partsUsecase.New(partRepo, userUc, pageUc, appLogger)
+	partH := partsHttp.New(partUc, appLogger)
 
+	mv := middleware.New(userUc)
+
+	userGroup := e.Group("/users")
+	usersHttp.NewRoutes(userGroup, userH, mv)
 	pagesGroup := e.Group("/pages")
-	pagesHttp.NewRoutes(pagesGroup, pagesH)
+	pagesHttp.NewRoutes(pagesGroup, pagesH, mv)
+	partsGroup := e.Group("/parts")
+	partsHttp.NewRoutes(partsGroup, partH, mv)
 
 	e.Logger.Fatal(e.Start(":8080"))
 	return nil

@@ -37,10 +37,10 @@ func (m *MockRepo) EXPECT() *MockRepoMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockRepo) Create(arg0 context.Context, arg1 pages_repo.CreateParams) (pages_repo.Page, error) {
+func (m *MockRepo) Create(arg0 context.Context, arg1 pages_repo.CreateParams) (pages_repo.CreateRow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
-	ret0, _ := ret[0].(pages_repo.Page)
+	ret0, _ := ret[0].(pages_repo.CreateRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -112,10 +112,10 @@ func (m *MockUsecase) EXPECT() *MockUsecaseMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockUsecase) Create(arg0 context.Context, arg1 pages_repo.CreateParams) (pages_repo.Page, error) {
+func (m *MockUsecase) Create(arg0 context.Context, arg1 pages_repo.CreateParams) (pages_repo.CreateRow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
-	ret0, _ := ret[0].(pages_repo.Page)
+	ret0, _ := ret[0].(pages_repo.CreateRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

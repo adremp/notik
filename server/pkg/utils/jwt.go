@@ -1,13 +1,11 @@
 package utils
 
 import (
-	"net/http"
-	"notik/pkg/httpErrors"
+	"fmt"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/labstack/echo/v4"
 )
 
 type UserClaims struct {
@@ -31,28 +29,19 @@ func GenerateToken(id int32, email string, expires time.Duration) (string, error
 func ParseToken(tokenString string) (*UserClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &UserClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, httpErrors.Error{http.StatusUnauthorized, "Invalid token"}
+			return nil, fmt.Errorf("jwt token signing method is not HMAC")
 		}
 		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 
 	if err != nil || !token.Valid {
-		return nil, httpErrors.Error{http.StatusUnauthorized, "Invalid token"}
+		return nil, fmt.Errorf("jwt token is not valid")
 	}
 
 	claims, ok := token.Claims.(*UserClaims)
 	if !ok {
-		return nil, httpErrors.Error{http.StatusUnauthorized, "Invalid token"}
+		return nil, fmt.Errorf("jwt token claims are not valid")
 	}
 
 	return claims, nil
-}
-
-
-func GetUserClaimsFromCtx(c echo.Context) (*UserClaims, error) {
-	user, ok := c.Get("user").(*UserClaims)
-	if !ok {
-		return nil, httpErrors.Error{http.StatusUnauthorized, "Invalid token"}
-	}
-	return user, nil
 }

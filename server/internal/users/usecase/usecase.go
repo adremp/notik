@@ -6,22 +6,24 @@ import (
 	"notik/internal/users"
 	"notik/internal/users/users_repo"
 	"notik/pkg/httpErrors"
+	"notik/pkg/logger"
 	"notik/pkg/utils"
 	"time"
 )
 
 type usersUc struct {
 	repo users.Repo
+	log  logger.Logger
 }
 
-func New(repo users.Repo) users.Usecase {
-	return &usersUc{repo}
+func New(repo users.Repo, log logger.Logger) users.Usecase {
+	return &usersUc{repo, log}
 }
 
 func (s *usersUc) Create(ctx context.Context, input users.CreateInput) (*users.UserWithToken, error) {
 	userList, err := s.repo.GetByFields(ctx, users_repo.GetByFieldsParams{Email: input.Email})
-	if len(userList) != 0 || err == nil {
-		return nil, httpErrors.ErrEmailExist
+	if len(userList) != 0 || err != nil {
+		return nil, httpErrors.NewBadRequest("users.uc.create: email already exists")
 	}
 
 	if err := input.HashPassword(); err != nil {
@@ -33,7 +35,7 @@ func (s *usersUc) Create(ctx context.Context, input users.CreateInput) (*users.U
 		return nil, fmt.Errorf("users.uc.create: %w", err)
 	}
 
-	token, err := utils.GenerateToken(newUser.ID, newUser.Email, time.Minute*10)
+	token, err := utils.GenerateToken(newUser.ID, newUser.Email, time.Minute*600)
 	if err != nil {
 		return nil, fmt.Errorf("users.uc.create.generateToken: %w", err)
 	}
